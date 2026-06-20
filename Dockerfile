@@ -3,7 +3,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma
-RUN npm install
+RUN npm install && npx prisma generate
 
 # Stage 2: App bauen
 FROM node:20-alpine AS builder
