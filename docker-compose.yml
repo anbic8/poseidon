@@ -1,0 +1,45 @@
+services:
+  app:
+    build: .
+    ports:
+      - "4000:3000"
+    environment:
+      - DATABASE_URL=postgresql://swim:swim@db:5432/swimdb
+      - TZ=Europe/Berlin
+      - MEDIA_DIR=/app/media
+      - MAX_PHOTO_SIZE_MB=20
+      - MAX_VIDEO_SIZE_MB=2048
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=swim
+      - POSTGRES_PASSWORD=swim
+      - POSTGRES_DB=swimdb
+      - TZ=Europe/Berlin
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swim -d swimdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - "9000:8080"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+  media_data:

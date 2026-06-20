@@ -1,0 +1,15 @@
+# Alle Textdateien: LF im Repository
+* text=auto eol=lf
+
+# Shell-Scripts immer LF (würden auf Linux mit CRLF nicht laufen)
+*.sh text eol=lf
+docker-entrypoint.sh text eol=lf
+update.sh text eol=lf
+
+# Binärdateien nicht konvertieren
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
