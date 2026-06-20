@@ -1,9 +1,9 @@
-# Stage 1: Abhängigkeiten installieren und Prisma Client generieren
+# Stage 1: Abhängigkeiten installieren
+# prisma generate kommt in Phase 2 wenn das Schema Models enthält
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-COPY prisma ./prisma
-RUN npm install && npx prisma generate
+RUN npm install
 
 # Stage 2: App bauen
 FROM node:20-alpine AS builder
@@ -19,7 +19,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Nur was die App zum Laufen braucht
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
