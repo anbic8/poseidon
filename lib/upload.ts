@@ -1,5 +1,4 @@
 import busboy from 'busboy'
-import { Readable } from 'stream'
 import { createWriteStream, mkdirSync } from 'fs'
 import path from 'path'
 import { randomUUID } from 'crypto'
@@ -12,6 +11,8 @@ type UploadTarget =
 
 export async function handleMediaUpload(req: NextRequest, target: UploadTarget) {
   const contentType = req.headers.get('content-type') ?? ''
+
+  if (!req.body) throw new Error('Kein Request-Body')
 
   const mediaDir = process.env.MEDIA_DIR ?? '/app/media'
   const year     = new Date().getFullYear()
@@ -28,6 +29,8 @@ export async function handleMediaUpload(req: NextRequest, target: UploadTarget) 
       limits:  { files: 1, fileSize: maxBytes },
     })
 
+    // Promise das aufgelöst wird sobald der WriteStream fertig ist
+    let fileCompleteProm: Promise<void> = Promise.resolve()
     let fileData: {
       relPath:      string
       mimeType:     string
@@ -40,50 +43,69 @@ export async function handleMediaUpload(req: NextRequest, target: UploadTarget) 
       const ext        = path.extname(filename) || ''
       const storedName = `${randomUUID()}${ext}`
       const filepath   = path.join(dir, storedName)
-      // relPath uses forward slashes (stored in DB, used in API URL)
       const relPath    = [String(year), targetId, storedName].join('/')
 
       let size = 0
-      const ws = createWriteStream(filepath)
-      file.on('data', (chunk: Buffer) => { size += chunk.length })
-      file.pipe(ws)
-      ws.on('finish', () => {
-        fileData = { relPath, mimeType, sizeBytes: size, originalName: filename }
+
+      fileCompleteProm = new Promise<void>((res, rej) => {
+        const ws = createWriteStream(filepath)
+        file.on('data', (chunk: Buffer) => { size += chunk.length })
+        file.pipe(ws)
+        ws.on('finish', () => {
+          fileData = { relPath, mimeType, sizeBytes: size, originalName: filename }
+          res()
+        })
+        ws.on('error', rej)
       })
-      ws.on('error', reject)
     })
 
-    bb.on('error', reject)
-
-    bb.on('finish', async () => {
-      if (!fileData) { reject(new Error('Keine Datei empfangen')); return }
-
-      const type = fileData.mimeType.startsWith('video/') ? 'VIDEO' as const : 'PHOTO' as const
-
-      const media = await db.media.create({
-        data: {
-          type,
-          filename:      fileData.relPath,
-          originalName:  fileData.originalName,
-          mimeType:      fileData.mimeType,
-          sizeBytes:     BigInt(fileData.sizeBytes),
-          competitionId: target.competitionId ?? null,
-          eventId:       target.eventId       ?? null,
-        },
-      })
-
-      // BigInt → string für JSON-Serialisierung
-      resolve({ ...media, sizeBytes: media.sizeBytes.toString() })
+    bb.on('error', (e) => {
+      console.error('[upload] busboy error:', e)
+      reject(e)
     })
 
-    // Web ReadableStream (Next.js App Router) → Node.js Readable → busboy
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const nodeStream = Readable.fromWeb(req.body as any)
-    nodeStream.pipe(bb)
+    bb.on('finish', () => {
+      // Warten bis WriteStream fertig ist (Race-Condition-Fix)
+      fileCompleteProm
+        .then(async () => {
+          if (!fileData) throw new Error('Keine Datei empfangen')
+
+          const type = fileData.mimeType.startsWith('video/')
+            ? 'VIDEO' as const
+            : 'PHOTO' as const
+
+          const media = await db.media.create({
+            data: {
+              type,
+              filename:      fileData.relPath,
+              originalName:  fileData.originalName,
+              mimeType:      fileData.mimeType,
+              sizeBytes:     BigInt(fileData.sizeBytes),
+              competitionId: target.competitionId ?? null,
+              eventId:       target.eventId       ?? null,
+            },
+          })
+
+          resolve({ ...media, sizeBytes: media.sizeBytes.toString() })
+        })
+        .catch((e) => {
+          console.error('[upload] finish handler error:', e)
+          reject(e)
+        })
+    })
+
+    // Async-Iteration ist in Next.js App Router zuverlässiger als Readable.fromWeb
+    ;(async () => {
+      try {
+        for await (const chunk of req.body as AsyncIterable<Uint8Array>) {
+          bb.write(chunk)
+        }
+        bb.end()
+      } catch (e) {
+        console.error('[upload] body read error:', e)
+        bb.destroy()
+        reject(e as Error)
+      }
+    })()
   })
-}
-
-/** Serialisiert ein Media-Objekt aus Prisma (BigInt → string) */
-export function serializeMedia(m: { sizeBytes: bigint; [k: string]: unknown }) {
-  return { ...m, sizeBytes: m.sizeBytes.toString() }
 }
