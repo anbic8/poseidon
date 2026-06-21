@@ -17,13 +17,24 @@ export async function GET(_req: NextRequest, { params }: Params) {
     where:   { id: params.id },
     include: {
       events: {
-        include:  { eventType: true },
+        include:  { eventType: true, media: { orderBy: { createdAt: 'asc' } } },
         orderBy:  { createdAt: 'asc' },
       },
+      media: { orderBy: { createdAt: 'asc' } },
     },
   })
   if (!competition) return NextResponse.json({ error: 'Nicht gefunden' }, { status: 404 })
-  return NextResponse.json(competition)
+
+  // BigInt (sizeBytes) für JSON serialisieren
+  const serialized = {
+    ...competition,
+    media: competition.media.map((m) => ({ ...m, sizeBytes: m.sizeBytes.toString() })),
+    events: competition.events.map((e) => ({
+      ...e,
+      media: e.media.map((m) => ({ ...m, sizeBytes: m.sizeBytes.toString() })),
+    })),
+  }
+  return NextResponse.json(serialized)
 }
 
 export async function PUT(req: NextRequest, { params }: Params) {

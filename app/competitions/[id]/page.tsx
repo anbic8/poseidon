@@ -5,9 +5,11 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { formatDate, formatTime } from '@/lib/time'
 import { POOL_LABELS, STROKE_LABELS } from '@/lib/constants'
-import type { CompetitionEvent, CompetitionWithEvents } from '@/lib/types'
+import type { CompetitionEventWithMedia, CompetitionWithEvents, Media } from '@/lib/types'
 import { CompetitionForm, type CompetitionFormData } from '../_components/competition-form'
 import { EventForm, type EventFormData } from './_components/event-form'
+import { MediaUpload } from '@/components/media-upload'
+import { PhotoGallery } from '@/components/photo-gallery'
 
 // ── Hilfskomponenten ─────────────────────────────────────────────────────────
 
@@ -44,12 +46,15 @@ function ConfirmDelete({ message, detail, onConfirm, onCancel }: {
   )
 }
 
-function EventRow({ event, onEdit, onDelete }: {
-  event: CompetitionEvent
-  onEdit:   (e: CompetitionEvent) => void
-  onDelete: (id: string) => void
+function EventRow({ event, onEdit, onDelete, onMediaDelete, onMediaUpload }: {
+  event: CompetitionEventWithMedia
+  onEdit:         (e: CompetitionEventWithMedia) => void
+  onDelete:       (id: string) => void
+  onMediaDelete:  (mediaId: string) => void
+  onMediaUpload:  (media: Media) => void
 }) {
   return (
+    <>
     <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -75,6 +80,12 @@ function EventRow({ event, onEdit, onDelete }: {
         {formatTime(event.timeMs)}
       </span>
       <div className="flex gap-1 shrink-0">
+        <MediaUpload
+          url={`/api/events/${event.id}/media`}
+          accept="video/*"
+          label="🎥"
+          onSuccess={onMediaUpload}
+        />
         <button onClick={() => onEdit(event)}
           className="rounded px-2 py-1 text-xs text-gray-400 hover:bg-gray-100" title="Bearbeiten">
           ✏️
@@ -85,6 +96,26 @@ function EventRow({ event, onEdit, onDelete }: {
         </button>
       </div>
     </div>
+    {/* Videos direkt zum Lauf */}
+    {event.media.filter((m) => m.type === 'VIDEO').map((v) => (
+      <div key={v.id} className="mt-1 rounded-lg border border-gray-100 bg-gray-50 p-2 flex gap-2 items-start">
+        <video
+          controls
+          preload="metadata"
+          className="rounded flex-1 max-h-48 bg-black"
+        >
+          <source src={`/api/media/file/${v.filename}`} type={v.mimeType} />
+        </video>
+        <button
+          onClick={() => onMediaDelete(v.id)}
+          className="rounded px-2 py-1 text-xs text-red-400 hover:bg-red-50 shrink-0"
+          title="Video löschen"
+        >
+          🗑️
+        </button>
+      </div>
+    ))}
+  </>
   )
 }
 
@@ -98,7 +129,7 @@ export default function CompetitionDetailPage() {
   const [loading,        setLoading]        = useState(true)
   const [editComp,       setEditComp]       = useState(false)
   const [addEvent,       setAddEvent]       = useState(false)
-  const [editEvent,      setEditEvent]      = useState<CompetitionEvent | null>(null)
+  const [editEvent,      setEditEvent]      = useState<CompetitionEventWithMedia | null>(null)
   const [deleteEventId,  setDeleteEventId]  = useState<string | null>(null)
   const [deleteComp,     setDeleteComp]     = useState(false)
 
@@ -147,6 +178,11 @@ export default function CompetitionDetailPage() {
   async function handleDeleteEvent(eventId: string) {
     await fetch(`/api/events/${eventId}`, { method: 'DELETE' })
     setDeleteEventId(null)
+    load()
+  }
+
+  async function handleDeleteMedia(mediaId: string) {
+    await fetch(`/api/media/${mediaId}`, { method: 'DELETE' })
     load()
   }
 
@@ -237,7 +273,8 @@ export default function CompetitionDetailPage() {
           <div className="space-y-2">
             {individualEvents.map((ev) => (
               <EventRow key={ev.id} event={ev}
-                onEdit={setEditEvent} onDelete={setDeleteEventId} />
+                onEdit={setEditEvent} onDelete={setDeleteEventId}
+                onMediaDelete={handleDeleteMedia} onMediaUpload={() => load()} />
             ))}
           </div>
         </section>
@@ -252,7 +289,8 @@ export default function CompetitionDetailPage() {
           <div className="space-y-2">
             {relayEvents.map((ev) => (
               <EventRow key={ev.id} event={ev}
-                onEdit={setEditEvent} onDelete={setDeleteEventId} />
+                onEdit={setEditEvent} onDelete={setDeleteEventId}
+                onMediaDelete={handleDeleteMedia} onMediaUpload={() => load()} />
             ))}
           </div>
         </section>
@@ -263,6 +301,57 @@ export default function CompetitionDetailPage() {
           Noch keine Läufe eingetragen.
         </div>
       )}
+
+      {/* Foto-Galerie */}
+      {(() => {
+        const photos = competition.media.filter((m) => m.type === 'PHOTO')
+        const videos = competition.media.filter((m) => m.type === 'VIDEO')
+        return (
+          <section className="mt-2">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-gray-800">
+                Fotos & Videos ({competition.media.length})
+              </h2>
+              <div className="flex gap-2">
+                <MediaUpload
+                  url={`/api/competitions/${id}/media`}
+                  accept="image/*"
+                  label="📷 Foto"
+                  onSuccess={load}
+                />
+                <MediaUpload
+                  url={`/api/competitions/${id}/media`}
+                  accept="video/*"
+                  label="🎥 Video"
+                  onSuccess={load}
+                />
+              </div>
+            </div>
+
+            {photos.length === 0 && videos.length === 0 && (
+              <div className="rounded-lg border border-dashed border-gray-200 py-8 text-center text-gray-400 text-sm">
+                Noch keine Fotos oder Videos hochgeladen.
+              </div>
+            )}
+
+            <PhotoGallery photos={photos} onDelete={handleDeleteMedia} />
+
+            {videos.map((v) => (
+              <div key={v.id} className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 flex gap-3 items-start">
+                <video controls preload="metadata" className="rounded flex-1 max-h-64 bg-black">
+                  <source src={`/api/media/file/${v.filename}`} type={v.mimeType} />
+                </video>
+                <button
+                  onClick={() => handleDeleteMedia(v.id)}
+                  className="rounded px-2 py-1 text-xs text-red-400 hover:bg-red-50 shrink-0"
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+          </section>
+        )
+      })()}
 
       {/* Modals */}
       {editEvent && (

@@ -54,6 +54,23 @@ export type CompetitionEvent = {
   updatedAt: string
 }
 
+export type Media = {
+  id: string
+  type: 'PHOTO' | 'VIDEO'
+  filename: string
+  originalName: string
+  mimeType: string
+  sizeBytes: string       // BigInt → String in JSON
+  competitionId: string | null
+  eventId: string | null
+  createdAt: string
+}
+
+export type CompetitionEventWithMedia = CompetitionEvent & {
+  media: Media[]
+}
+
 export type CompetitionWithEvents = Competition & {
-  events: CompetitionEvent[]
+  events: CompetitionEventWithMedia[]
+  media: Media[]
 }
