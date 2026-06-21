@@ -20,7 +20,8 @@
     "@prisma/client": "^5.22.0",
     "zod": "^3.23.8",
     "date-fns": "^3.6.0",
-    "date-fns-tz": "^3.2.0"
+    "date-fns-tz": "^3.2.0",
+    "recharts": "^2.13.0"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
