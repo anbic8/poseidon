@@ -38,6 +38,7 @@
     "autoprefixer": "^10.0.1",
     "postcss": "^8",
     "prisma": "^5.22.0",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "@types/busboy": "^1.5.4"
   }
 }
