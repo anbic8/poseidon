@@ -1,13 +1,19 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
+import { BottomNav } from './_components/bottom-nav'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Poseidon',
-  description: 'Schwimmtagebuch',
+  title: 'Poseidon – Schwimmtagebuch',
+  description: 'Schwimmtagebuch für Wettkämpfe und Training',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Poseidon',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -30,7 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
           </div>
         </nav>
-        <main>{children}</main>
+        {/* pb-16 auf Mobile damit Inhalt nicht hinter Bottom-Nav verschwindet */}
+        <main className="pb-16 sm:pb-0">{children}</main>
+        <BottomNav />
       </body>
     </html>
   )

@@ -57,7 +57,6 @@ export function MediaUpload({
         ref={inputRef}
         type="file"
         accept={accept}
-        capture={accept.includes('image') && !accept.includes('video') ? 'environment' : undefined}
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0]

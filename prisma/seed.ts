@@ -24,6 +24,7 @@ const eventTypes: EventTypeSeed[] = [
   { displayName: '1500m Freistil', stroke: Stroke.FREISTIL, distanceM: 1500, isRelay: false, relayLegs: null, trainingOnly: false, validKB: true,  validLB: true,  sortOrder: 15 },
 
   // --- Rücken ---
+  { displayName: '25m Rücken / Rückengleichschlag', stroke: Stroke.RUECKEN, distanceM: 25,  isRelay: false, relayLegs: null, trainingOnly: false, validKB: true, validLB: false, sortOrder: 19 },
   { displayName: '50m Rücken',  stroke: Stroke.RUECKEN, distanceM: 50,  isRelay: false, relayLegs: null, trainingOnly: false, validKB: true, validLB: true, sortOrder: 20 },
   { displayName: '100m Rücken', stroke: Stroke.RUECKEN, distanceM: 100, isRelay: false, relayLegs: null, trainingOnly: false, validKB: true, validLB: true, sortOrder: 21 },
   { displayName: '200m Rücken', stroke: Stroke.RUECKEN, distanceM: 200, isRelay: false, relayLegs: null, trainingOnly: false, validKB: true, validLB: true, sortOrder: 22 },
@@ -51,7 +52,7 @@ const eventTypes: EventTypeSeed[] = [
   { displayName: '4x100m Lagen Staffel',    stroke: Stroke.LAGEN,    distanceM: 100, isRelay: true, relayLegs: 4, trainingOnly: false, validKB: true,  validLB: true,  sortOrder: 64 },
 
   // --- Trainingsdisziplinen (trainingOnly = true) ---
-  { displayName: '25m Rücken Beine (ohne Brett)',  stroke: Stroke.RUECKEN_BEINE_OHNE_BRETT, distanceM: 25,  isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 70 },
+  { displayName: '25m Rücken Beine',  stroke: Stroke.RUECKEN_BEINE_OHNE_BRETT, distanceM: 25,  isRelay: false, relayLegs: null, trainingOnly: false, validKB: true, validLB: false, sortOrder: 70 },
   { displayName: '50m Rücken Beine (ohne Brett)',  stroke: Stroke.RUECKEN_BEINE_OHNE_BRETT, distanceM: 50,  isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 71 },
   { displayName: '100m Rücken Beine (ohne Brett)', stroke: Stroke.RUECKEN_BEINE_OHNE_BRETT, distanceM: 100, isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 72 },
   { displayName: '200m Rücken Beine (ohne Brett)', stroke: Stroke.RUECKEN_BEINE_OHNE_BRETT, distanceM: 200, isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 73 },
@@ -61,14 +62,14 @@ const eventTypes: EventTypeSeed[] = [
   { displayName: '100m Rücken Beine (mit Brett)', stroke: Stroke.RUECKEN_BEINE_MIT_BRETT, distanceM: 100, isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 76 },
   { displayName: '200m Rücken Beine (mit Brett)', stroke: Stroke.RUECKEN_BEINE_MIT_BRETT, distanceM: 200, isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 77 },
 
-  { displayName: '25m Kraul Beine (mit Brett)',  stroke: Stroke.KRAUL_BEINE_MIT_BRETT, distanceM: 25,  isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 78 },
+  { displayName: '25m Kraul Beine (mit Brett)',  stroke: Stroke.KRAUL_BEINE_MIT_BRETT, distanceM: 25,  isRelay: false, relayLegs: null, trainingOnly: false, validKB: true, validLB: false, sortOrder: 78 },
   { displayName: '50m Kraul Beine (mit Brett)',  stroke: Stroke.KRAUL_BEINE_MIT_BRETT, distanceM: 50,  isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 79 },
   { displayName: '100m Kraul Beine (mit Brett)', stroke: Stroke.KRAUL_BEINE_MIT_BRETT, distanceM: 100, isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 80 },
   { displayName: '200m Kraul Beine (mit Brett)', stroke: Stroke.KRAUL_BEINE_MIT_BRETT, distanceM: 200, isRelay: false, relayLegs: null, trainingOnly: true, validKB: true, validLB: true, sortOrder: 81 },
 ]
 
 async function main() {
-  console.log(`Seeding ${eventTypes.length} EventTypes...`)
+  console.log(`Seeding ${eventTypes.length} EventTypes...`) // 36 Wettkampf + 11 Training-only
 
   for (const et of eventTypes) {
     await db.eventType.upsert({
