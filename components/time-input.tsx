@@ -25,7 +25,6 @@ export function TimeInput({
   }, [value])
 
   const handleBlur = () => {
-    // Nur-Ziffern-Eingabe auto-formatieren
     const digitsOnly = raw.replace(/\D/g, '')
     if (digitsOnly === raw && digitsOnly.length > 0) {
       const ms = parseTimeInput(raw)
@@ -49,10 +48,15 @@ export function TimeInput({
         onBlur={handleBlur}
         placeholder={placeholder}
         className={`w-full rounded-md border px-3 py-2 text-sm font-mono
-          ${error ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-500'}
+          bg-white dark:bg-slate-700
+          text-gray-900 dark:text-slate-100
+          placeholder-gray-400 dark:placeholder-slate-400
+          ${error
+            ? 'border-red-400 focus:ring-red-400'
+            : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500'}
           focus:outline-none focus:ring-2`}
       />
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{error}</p>}
     </div>
   )
 }

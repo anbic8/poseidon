@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Sanfter Übergang beim Theme-Wechsel */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 120ms;
+  transition-timing-function: ease;
+}
+
+/* Kein Transition auf interaktiven Elementen damit Klicks snappy bleiben */
+button,
+a,
+input,
+select,
+textarea {
+  transition-property: background-color, border-color, color, box-shadow, opacity;
+  transition-duration: 80ms;
+}

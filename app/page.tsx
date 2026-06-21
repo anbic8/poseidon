@@ -62,10 +62,10 @@ function TimeCell({ ms, date, na }: { ms: number | null; date?: string | null; n
 
 function StatCard({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-      <p className="text-xs text-gray-400 uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+    <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3">
+      <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">{label}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-slate-100 mt-0.5">{value}</p>
+      {sub && <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -73,20 +73,20 @@ function StatCard({ label, value, sub }: { label: string; value: number | string
 function CompCard({ title, comp }: { title: string; comp: Competition | null }) {
   if (!comp) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-200 px-4 py-3">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">{title}</p>
-        <p className="text-sm text-gray-400 mt-1">—</p>
+      <div className="rounded-lg border border-dashed border-gray-200 dark:border-slate-700 px-4 py-3">
+        <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">{title}</p>
+        <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">—</p>
       </div>
     )
   }
   return (
     <Link href={`/competitions/${comp.id}`}
-      className="rounded-lg border border-gray-200 bg-white px-4 py-3 block hover:border-blue-300 transition-colors">
-      <p className="text-xs text-gray-400 uppercase tracking-wide">{title}</p>
-      <p className="font-semibold text-gray-800 mt-0.5 truncate">{comp.name}</p>
-      <p className="text-xs text-gray-500 mt-0.5">
+      className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 block hover:border-blue-300 dark:hover:border-blue-700">
+      <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">{title}</p>
+      <p className="font-semibold text-gray-800 dark:text-slate-200 mt-0.5 truncate">{comp.name}</p>
+      <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
         {formatDate(comp.date)}{comp.location ? ` · ${comp.location}` : ''}{' '}
-        <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-xs">{POOL_LABELS[comp.poolType]}</span>
+        <span className="rounded-full bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 text-xs dark:text-slate-300">{POOL_LABELS[comp.poolType]}</span>
       </p>
     </Link>
   )
@@ -148,14 +148,13 @@ export default function DashboardPage() {
 
       {/* Saison-Selector */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Dashboard</h1>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">Saison:</span>
+          <span className="text-sm text-gray-500 dark:text-slate-400">Saison:</span>
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm
-              focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -181,57 +180,53 @@ export default function DashboardPage() {
       )}
 
       {loading && (
-        <p className="text-center text-gray-400 text-sm py-8">Lade Daten…</p>
+        <p className="text-center text-gray-400 dark:text-slate-500 text-sm py-8">Lade Daten…</p>
       )}
 
       {/* Bestzeiten-Tabelle */}
       {!loading && bests.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-200 mb-3">
             Bestzeiten {year}
           </h2>
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left px-4 py-2.5 font-medium text-gray-600 w-40">Disziplin</th>
-                  <th className="text-center px-3 py-2.5 font-medium text-gray-600" colSpan={2}>
-                    Kurzbahn 25m
-                  </th>
-                  <th className="text-center px-3 py-2.5 font-medium text-gray-600 border-l border-gray-200" colSpan={2}>
-                    Langbahn 50m
-                  </th>
+                <tr className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
+                  <th className="text-left px-4 py-2.5 font-medium text-gray-600 dark:text-slate-400 w-40">Disziplin</th>
+                  <th className="text-center px-3 py-2.5 font-medium text-gray-600 dark:text-slate-400" colSpan={2}>Kurzbahn 25m</th>
+                  <th className="text-center px-3 py-2.5 font-medium text-gray-600 dark:text-slate-400 border-l border-gray-200 dark:border-slate-700" colSpan={2}>Langbahn 50m</th>
                 </tr>
-                <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-400">
+                <tr className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 text-xs text-gray-400 dark:text-slate-500">
                   <th className="px-4 py-1.5" />
                   <th className="px-3 py-1.5 font-medium">Wettkampf</th>
                   <th className="px-3 py-1.5 font-medium">Training</th>
-                  <th className="px-3 py-1.5 font-medium border-l border-gray-200">Wettkampf</th>
+                  <th className="px-3 py-1.5 font-medium border-l border-gray-200 dark:border-slate-700">Wettkampf</th>
                   <th className="px-3 py-1.5 font-medium">Training</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white dark:bg-slate-800">
                 {groupedByStroke.map(({ stroke, label, events }) => (
                   <>
-                    <tr key={`header-${stroke}`} className="bg-blue-50">
-                      <td colSpan={5} className="px-4 py-1.5 text-xs font-semibold text-blue-700 uppercase tracking-wide">
+                    <tr key={`header-${stroke}`} className="bg-blue-50 dark:bg-blue-950/40">
+                      <td colSpan={5} className="px-4 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
                         {label}
                       </td>
                     </tr>
                     {events.map((b) => (
                       <tr key={b.eventTypeId}
-                        className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-2.5 text-gray-700">{b.displayName}</td>
-                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700">
+                        className="border-t border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50">
+                        <td className="px-4 py-2.5 text-gray-700 dark:text-slate-300">{b.displayName}</td>
+                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400">
                           <TimeCell ms={b.kb.compMs} date={b.kb.compDate} na={!b.validKB} />
                         </td>
-                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 text-xs">
+                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs">
                           <TimeCell ms={b.kb.trainMs} date={b.kb.trainDate} na={!b.validKB} />
                         </td>
-                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 border-l border-gray-100">
+                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400 border-l border-gray-100 dark:border-slate-700">
                           <TimeCell ms={b.lb.compMs} date={b.lb.compDate} na={!b.validLB} />
                         </td>
-                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 text-xs">
+                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs">
                           <TimeCell ms={b.lb.trainMs} date={b.lb.trainDate} na={!b.validLB} />
                         </td>
                       </tr>
@@ -240,25 +235,25 @@ export default function DashboardPage() {
                 ))}
                 {relayBests.length > 0 && (
                   <>
-                    <tr className="bg-blue-50">
-                      <td colSpan={5} className="px-4 py-1.5 text-xs font-semibold text-blue-700 uppercase tracking-wide">
+                    <tr className="bg-blue-50 dark:bg-blue-950/40">
+                      <td colSpan={5} className="px-4 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
                         Staffeln
                       </td>
                     </tr>
                     {relayBests.map((b) => (
                       <tr key={b.eventTypeId}
-                        className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-2.5 text-gray-700">{b.displayName}</td>
-                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700">
+                        className="border-t border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50">
+                        <td className="px-4 py-2.5 text-gray-700 dark:text-slate-300">{b.displayName}</td>
+                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400">
                           <TimeCell ms={b.kb.compMs} date={b.kb.compDate} na={!b.validKB} />
                         </td>
-                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 text-xs">
+                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs">
                           <TimeCell ms={b.kb.trainMs} date={b.kb.trainDate} na={!b.validKB} />
                         </td>
-                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 border-l border-gray-100">
+                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400 border-l border-gray-100 dark:border-slate-700">
                           <TimeCell ms={b.lb.compMs} date={b.lb.compDate} na={!b.validLB} />
                         </td>
-                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 text-xs">
+                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs">
                           <TimeCell ms={b.lb.trainMs} date={b.lb.trainDate} na={!b.validLB} />
                         </td>
                       </tr>
@@ -268,7 +263,7 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-gray-400 mt-1.5">
+          <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5">
             Wettkampfzeit = fett blau · Trainingszeit = grau · — = keine Daten · Hover zeigt Datum
           </p>
         </section>
@@ -277,11 +272,11 @@ export default function DashboardPage() {
       {/* Letzte Aktivitäten */}
       {!loading && recent.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Letzte Aktivitäten</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-200 mb-3">Letzte Aktivitäten</h2>
           <div className="space-y-1.5">
             {recent.map((a) => (
               <div key={`${a.type}-${a.id}`}
-                className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white px-4 py-2.5">
+                className="flex items-center gap-3 rounded-lg border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5">
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
                   a.type === 'competition'
                     ? 'bg-blue-100 text-blue-700'
@@ -289,15 +284,15 @@ export default function DashboardPage() {
                 }`}>
                   {a.type === 'competition' ? 'WK' : 'TR'}
                 </span>
-                <span className="text-xs text-gray-400 shrink-0 w-20">{formatDate(a.date)}</span>
-                <span className="flex-1 text-sm text-gray-700 truncate">
+                <span className="text-xs text-gray-400 dark:text-slate-500 shrink-0 w-20">{formatDate(a.date)}</span>
+                <span className="flex-1 text-sm text-gray-700 dark:text-slate-300 truncate">
                   {a.displayName}
-                  {a.context && <span className="text-gray-400"> · {a.context}</span>}
+                  {a.context && <span className="text-gray-400 dark:text-slate-500"> · {a.context}</span>}
                 </span>
-                <span className="font-mono text-sm font-semibold text-blue-700 shrink-0">
+                <span className="font-mono text-sm font-semibold text-blue-700 dark:text-blue-400 shrink-0">
                   {formatTime(a.timeMs)}
                 </span>
-                <span className="text-xs text-gray-400 shrink-0">
+                <span className="text-xs text-gray-400 dark:text-slate-500 shrink-0">
                   {a.poolType === 'KURZBAHN' ? 'KB' : 'LB'}
                 </span>
               </div>
@@ -309,14 +304,13 @@ export default function DashboardPage() {
       {/* Zeitverlauf-Chart */}
       {!loading && chartOptions.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Zeitverlauf</h2>
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-200 mb-3">Zeitverlauf</h2>
+          <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
             <div className="flex flex-wrap gap-3 mb-4">
               <select
                 value={chartType}
                 onChange={(e) => setChartType(e.target.value)}
-                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-1.5 text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">— Disziplin wählen —</option>
                 {STROKE_ORDER.map((stroke) => {
@@ -340,7 +334,7 @@ export default function DashboardPage() {
                     className={`rounded-md px-3 py-1.5 text-sm border transition-colors ${
                       chartPool === pt
                         ? 'bg-blue-600 text-white border-blue-600'
-                        : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                        : 'border-gray-300 dark:border-slate-600 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                     }`}
                   >
                     {pt === 'KURZBAHN' ? 'KB' : 'LB'}
@@ -355,7 +349,7 @@ export default function DashboardPage() {
       )}
 
       {!loading && bests.length === 0 && (
-        <div className="rounded-lg border border-dashed border-gray-300 py-16 text-center text-gray-500">
+        <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-700 py-16 text-center text-gray-500 dark:text-slate-500">
           <p className="text-lg mb-2">Noch keine Daten.</p>
           <p className="text-sm">
             <Link href="/training" className="text-blue-600 hover:underline">Trainingszeit eintragen</Link>
