@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
+import { deleteMediaFile } from '@/lib/media'
 
 const updateSchema = z.object({
   name:     z.string().min(1).optional(),
@@ -55,6 +56,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  // Mediendateien vom Filesystem löschen bevor die DB-Einträge kaskadiert werden
+  const allMedia = await db.media.findMany({
+    where: {
+      OR: [
+        { competitionId: params.id },
+        { event: { competitionId: params.id } },
+      ],
+    },
+  })
+  await Promise.all(allMedia.map((m) => deleteMediaFile(m.filename)))
+
   await db.competition.delete({ where: { id: params.id } })
   return new NextResponse(null, { status: 204 })
 }

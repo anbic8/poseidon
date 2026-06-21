@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { parseTimeInput, timeInputSchema } from '@/lib/time'
+import { deleteMediaFile } from '@/lib/media'
 
 const updateSchema = z.object({
   eventTypeId: z.string().min(1).optional(),
@@ -46,6 +47,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const media = await db.media.findMany({ where: { trainingEntryId: params.id } })
+  await Promise.all(media.map((m) => deleteMediaFile(m.filename)))
+
   await db.trainingEntry.delete({ where: { id: params.id } })
   return new NextResponse(null, { status: 204 })
 }
