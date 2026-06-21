@@ -97,7 +97,7 @@ export async function handleMediaUpload(req: NextRequest, target: UploadTarget) 
     // Async-Iteration ist in Next.js App Router zuverlässiger als Readable.fromWeb
     ;(async () => {
       try {
-        for await (const chunk of req.body as AsyncIterable<Uint8Array>) {
+        for await (const chunk of req.body as unknown as AsyncIterable<Uint8Array>) {
           bb.write(chunk)
         }
         bb.end()
