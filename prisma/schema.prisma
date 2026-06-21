@@ -8,5 +8,110 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Vollständiges Schema kommt in Phase 2.
-// Diese Datei dient in Phase 1 nur dem Verbindungstest.
+// Gültige Disziplinen (Wettkampf + Training). Einmalig per Seed befüllt.
+model EventType {
+  id           String   @id @default(cuid())
+  displayName  String
+  stroke       Stroke
+  distanceM    Int
+  isRelay      Boolean  @default(false)
+  relayLegs    Int?
+  trainingOnly Boolean  @default(false)
+  validKB      Boolean  @default(true)
+  validLB      Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  events       Event[]
+  trainings    TrainingEntry[]
+
+  @@unique([stroke, distanceM, isRelay])
+}
+
+model Competition {
+  id        String   @id @default(cuid())
+  name      String
+  location  String?
+  date      DateTime @db.Date
+  poolType  PoolType
+  notes     String?
+  events    Event[]
+  media     Media[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
+
+model Event {
+  id            String      @id @default(cuid())
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  competitionId String
+  eventType     EventType   @relation(fields: [eventTypeId], references: [id])
+  eventTypeId   String
+  timeMs        Int
+  teamTimeMs    Int?
+  relayLeg      Int?
+  relayStroke   Stroke?
+  heat          String?
+  lane          Int?
+  place         Int?
+  notes         String?
+  media         Media[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([competitionId])
+  @@index([eventTypeId])
+}
+
+model TrainingEntry {
+  id          String    @id @default(cuid())
+  date        DateTime  @db.Date
+  eventType   EventType @relation(fields: [eventTypeId], references: [id])
+  eventTypeId String
+  poolType    PoolType
+  timeMs      Int
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([date])
+  @@index([eventTypeId, poolType])
+}
+
+model Media {
+  id            String       @id @default(cuid())
+  type          MediaType
+  filename      String       @unique
+  originalName  String
+  mimeType      String
+  sizeBytes     BigInt
+  competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  competitionId String?
+  event         Event?       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId       String?
+  createdAt     DateTime     @default(now())
+
+  @@index([competitionId])
+  @@index([eventId])
+}
+
+enum PoolType {
+  KURZBAHN
+  LANGBAHN
+}
+
+enum Stroke {
+  FREISTIL
+  RUECKEN
+  BRUST
+  SCHMETTERLING
+  LAGEN
+  RUECKEN_BEINE_OHNE_BRETT
+  RUECKEN_BEINE_MIT_BRETT
+  KRAUL_BEINE_MIT_BRETT
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+}

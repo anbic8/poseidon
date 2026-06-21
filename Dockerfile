@@ -1,9 +1,10 @@
-# Stage 1: Abhängigkeiten installieren
-# prisma generate kommt in Phase 2 wenn das Schema Models enthält
+# Stage 1: Abhängigkeiten installieren + Prisma Client generieren
 FROM node:20-alpine AS deps
 WORKDIR /app
+RUN apk add --no-cache openssl
 COPY package*.json ./
-RUN npm install
+COPY prisma ./prisma
+RUN npm install && npx prisma generate
 
 # Stage 2: App bauen
 FROM node:20-alpine AS builder
@@ -16,6 +17,7 @@ RUN npm run build
 # Stage 3: Production Image
 FROM node:20-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache openssl
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 

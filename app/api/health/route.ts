@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server'
+import { db } from '@/lib/db'
 
-// DB-Healthcheck kommt in Phase 2 wenn Prisma-Schema und Models definiert sind
 export async function GET() {
-  return NextResponse.json({ status: 'ok' })
+  try {
+    await db.$queryRaw`SELECT 1`
+    return NextResponse.json({ status: 'ok', db: 'ok' })
+  } catch {
+    return NextResponse.json(
+      { status: 'error', db: 'unreachable' },
+      { status: 503 }
+    )
+  }
 }
