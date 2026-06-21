@@ -45,8 +45,7 @@ type Summary = {
 type ChartPoint = { date: string; timeMs: number; competitionName: string }
 
 const STROKE_ORDER = ['FREISTIL', 'RUECKEN', 'BRUST', 'SCHMETTERLING', 'LAGEN']
-const currentYear  = new Date().getFullYear()
-const YEARS        = Array.from({ length: 5 }, (_, i) => currentYear - i)
+const currentYear = new Date().getFullYear()
 
 // ── Helfer ────────────────────────────────────────────────────────────────────
 
@@ -96,6 +95,7 @@ function CompCard({ title, comp }: { title: string; comp: Competition | null }) 
 
 export default function DashboardPage() {
   const [year,       setYear]       = useState<number>(currentYear)
+  const [years,      setYears]      = useState<number[]>([currentYear])
   const [bests,      setBests]      = useState<BestTime[]>([])
   const [recent,     setRecent]     = useState<RecentActivity[]>([])
   const [summary,    setSummary]    = useState<Summary | null>(null)
@@ -105,6 +105,13 @@ export default function DashboardPage() {
   const [chartType,  setChartType]  = useState('')
   const [chartPool,  setChartPool]  = useState<PoolType>('KURZBAHN')
   const [loading,    setLoading]    = useState(true)
+
+  useEffect(() => {
+    fetch('/api/stats/years').then((r) => r.json()).then((data: number[]) => {
+      setYears(data.length > 0 ? data : [currentYear])
+      if (data.length > 0 && !data.includes(year)) setYear(data[0])
+    })
+  }, [])
 
   const loadDashboard = useCallback(() => {
     setLoading(true)
@@ -156,7 +163,7 @@ export default function DashboardPage() {
             onChange={(e) => setYear(Number(e.target.value))}
             className="rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+            {years.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
       </div>

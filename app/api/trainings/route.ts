@@ -32,11 +32,13 @@ export async function GET(req: NextRequest) {
 
   const trainings = await db.trainingEntry.findMany({
     where,
-    include:  { eventType: true },
+    include:  { eventType: true, media: { orderBy: { createdAt: 'asc' } } },
     orderBy:  { date: 'desc' },
   })
 
-  return NextResponse.json(trainings)
+  return NextResponse.json(
+    trainings.map((t) => ({ ...t, media: t.media.map((m) => ({ ...m, sizeBytes: m.sizeBytes.toString() })) }))
+  )
 }
 
 export async function POST(req: NextRequest) {

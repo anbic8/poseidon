@@ -71,6 +71,7 @@ model TrainingEntry {
   poolType    PoolType
   timeMs      Int
   notes       String?
+  media       Media[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -87,12 +88,15 @@ model Media {
   sizeBytes     BigInt
   competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   competitionId String?
-  event         Event?       @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  eventId       String?
-  createdAt     DateTime     @default(now())
+  event           Event?         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId         String?
+  trainingEntry   TrainingEntry? @relation(fields: [trainingEntryId], references: [id], onDelete: Cascade)
+  trainingEntryId String?
+  createdAt       DateTime       @default(now())
 
   @@index([competitionId])
   @@index([eventId])
+  @@index([trainingEntryId])
 }
 
 enum PoolType {

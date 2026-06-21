@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${inter.className} bg-gray-50 dark:bg-slate-900 min-h-screen`}>
-        <nav className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-40">
+        <nav className="hidden sm:block bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-40">
           <div className="max-w-4xl mx-auto px-4 flex items-center gap-6 h-14">
             <Link href="/" className="font-bold text-blue-600 dark:text-blue-400 text-lg shrink-0">
               Poseidon
@@ -43,12 +43,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/competitions" className="text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hidden sm:block">
               Wettkämpfe
             </Link>
+            <Link href="/bestzeiten" className="text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hidden sm:block">
+              Bestzeiten
+            </Link>
+            <Link href="/erfolge" className="text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hidden sm:block">
+              Erfolge
+            </Link>
             <div className="ml-auto">
               <ThemeToggle />
             </div>
           </div>
         </nav>
-        <main className="pb-16 sm:pb-0">{children}</main>
+        <main className="pb-20 sm:pb-0">{children}</main>
         <BottomNav />
       </body>
     </html>

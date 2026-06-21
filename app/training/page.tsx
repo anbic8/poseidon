@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { TrainingForm, type FormData } from './_components/training-form'
+import { MediaUpload } from '@/components/media-upload'
 import { formatTime, formatDate } from '@/lib/time'
-import type { EventType, PoolType, TrainingEntry } from '@/lib/types'
+import type { EventType, Media, PoolType, TrainingEntry } from '@/lib/types'
 
 const POOL_LABELS: Record<PoolType, string> = { KURZBAHN: 'KB', LANGBAHN: 'LB' }
 const currentYear = new Date().getFullYear()
@@ -66,6 +67,11 @@ export default function TrainingPage() {
     loadTrainings()
   }
 
+  async function handleDeleteMedia(mediaId: string) {
+    await fetch(`/api/media/${mediaId}`, { method: 'DELETE' })
+    loadTrainings()
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
@@ -117,31 +123,52 @@ export default function TrainingPage() {
           {trainings.map((t) => (
             <div key={t.id}
               className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800
-                px-4 py-3 flex items-center gap-4 hover:border-gray-300 dark:hover:border-slate-600">
-              <span className="w-24 shrink-0 text-sm text-gray-500 dark:text-slate-400">
-                {formatDate(t.date)}
-              </span>
-              <div className="flex-1 min-w-0">
-                <span className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate block">
-                  {t.eventType.displayName}
+                hover:border-gray-300 dark:hover:border-slate-600">
+              {/* Zeile */}
+              <div className="px-4 py-3 flex items-center gap-3">
+                <span className="w-20 shrink-0 text-xs text-gray-500 dark:text-slate-400">
+                  {formatDate(t.date)}
                 </span>
-                <span className="text-xs text-gray-400 dark:text-slate-500">
-                  {POOL_LABELS[t.poolType]}{t.notes && <> · {t.notes}</>}
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate block">
+                    {t.eventType.displayName}
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-slate-500">
+                    {POOL_LABELS[t.poolType]}{t.notes && <> · {t.notes}</>}
+                  </span>
+                </div>
+                <span className="font-mono text-base font-semibold text-blue-700 dark:text-blue-400 shrink-0">
+                  {formatTime(t.timeMs)}
                 </span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <MediaUpload
+                    url={`/api/trainings/${t.id}/media`}
+                    accept="video/*"
+                    label="🎥"
+                    onSuccess={() => loadTrainings()}
+                  />
+                  <button onClick={() => { setEditEntry(t); setShowAddForm(false) }}
+                    className="rounded px-2 py-1 text-xs text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700">
+                    ✏️
+                  </button>
+                  <button onClick={() => setDeleteId(t.id)}
+                    className="rounded px-2 py-1 text-xs text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
+                    🗑️
+                  </button>
+                </div>
               </div>
-              <span className="font-mono text-lg font-semibold text-blue-700 dark:text-blue-400 shrink-0">
-                {formatTime(t.timeMs)}
-              </span>
-              <div className="flex gap-1 shrink-0">
-                <button onClick={() => { setEditEntry(t); setShowAddForm(false) }}
-                  className="rounded px-2 py-1 text-xs text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700">
-                  ✏️
-                </button>
-                <button onClick={() => setDeleteId(t.id)}
-                  className="rounded px-2 py-1 text-xs text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
-                  🗑️
-                </button>
-              </div>
+              {/* Videos */}
+              {t.media && t.media.filter((m: Media) => m.type === 'VIDEO').map((v: Media) => (
+                <div key={v.id} className="border-t border-gray-100 dark:border-slate-700 px-4 py-3 flex gap-3 items-start bg-gray-50 dark:bg-slate-900/50">
+                  <video controls preload="metadata" className="rounded flex-1 max-h-52 bg-black">
+                    <source src={`/api/media/file/${v.filename}`} type={v.mimeType} />
+                  </video>
+                  <button onClick={() => handleDeleteMedia(v.id)}
+                    className="rounded px-2 py-1 text-xs text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 shrink-0 mt-1">
+                    🗑️
+                  </button>
+                </div>
+              ))}
             </div>
           ))}
         </div>

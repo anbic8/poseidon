@@ -21,6 +21,7 @@ export type TrainingEntry = {
   poolType: PoolType
   timeMs: number
   notes: string | null
+  media?: Media[]
   createdAt: string
   updatedAt: string
 }
@@ -63,6 +64,7 @@ export type Media = {
   sizeBytes: string       // BigInt → String in JSON
   competitionId: string | null
   eventId: string | null
+  trainingEntryId: string | null
   createdAt: string
 }
 

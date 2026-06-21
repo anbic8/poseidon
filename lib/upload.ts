@@ -6,8 +6,9 @@ import { NextRequest } from 'next/server'
 import { db } from './db'
 
 type UploadTarget =
-  | { competitionId: string; eventId?: undefined }
-  | { eventId: string; competitionId?: undefined }
+  | { competitionId: string; eventId?: undefined; trainingEntryId?: undefined }
+  | { eventId: string; competitionId?: undefined; trainingEntryId?: undefined }
+  | { trainingEntryId: string; competitionId?: undefined; eventId?: undefined }
 
 export async function handleMediaUpload(req: NextRequest, target: UploadTarget) {
   const contentType = req.headers.get('content-type') ?? ''
@@ -16,7 +17,7 @@ export async function handleMediaUpload(req: NextRequest, target: UploadTarget) 
 
   const mediaDir = process.env.MEDIA_DIR ?? '/app/media'
   const year     = new Date().getFullYear()
-  const targetId = target.competitionId ?? target.eventId ?? 'misc'
+  const targetId = target.competitionId ?? target.eventId ?? target.trainingEntryId ?? 'misc'
   const dir      = path.join(mediaDir, String(year), targetId)
   mkdirSync(dir, { recursive: true })
 
@@ -81,8 +82,9 @@ export async function handleMediaUpload(req: NextRequest, target: UploadTarget) 
               originalName:  fileData.originalName,
               mimeType:      fileData.mimeType,
               sizeBytes:     BigInt(fileData.sizeBytes),
-              competitionId: target.competitionId ?? null,
-              eventId:       target.eventId       ?? null,
+              competitionId:   target.competitionId   ?? null,
+              eventId:         target.eventId         ?? null,
+              trainingEntryId: target.trainingEntryId ?? null,
             },
           })
 
