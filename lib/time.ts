@@ -1,5 +1,12 @@
 import { z } from 'zod'
 
+/** Datum als deutsches Kurzformat: "21.06.2026" */
+export function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('de-DE', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+  })
+}
+
 /**
  * Parst Zeiteingabe → Millisekunden.
  * Akzeptiert: "1:23,45" | "1:23.45" | "23,45" | "23.45" | "12345" (Stopwatch-Style)
