@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { Stroke } from '@prisma/client'
 import { db } from '@/lib/db'
 import { parseTimeInput, timeInputSchema } from '@/lib/time'
 
@@ -24,13 +25,14 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ errors: result.error.flatten() }, { status: 400 })
   }
 
-  const { timeInput, teamTimeInput, ...rest } = result.data
+  const { timeInput, teamTimeInput, relayStroke, ...rest } = result.data
   const event = await db.event.create({
     data: {
       ...rest,
       competitionId: params.id,
-      timeMs:     parseTimeInput(timeInput)!,
-      teamTimeMs: teamTimeInput ? parseTimeInput(teamTimeInput) : null,
+      timeMs:      parseTimeInput(timeInput)!,
+      teamTimeMs:  teamTimeInput ? parseTimeInput(teamTimeInput) : null,
+      relayStroke: relayStroke as Stroke | null | undefined,
     },
     include: { eventType: true },
   })

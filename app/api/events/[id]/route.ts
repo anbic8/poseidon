@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { Stroke } from '@prisma/client'
 import { db } from '@/lib/db'
 import { parseTimeInput, timeInputSchema } from '@/lib/time'
 
@@ -24,12 +25,15 @@ export async function PUT(req: NextRequest, { params }: Params) {
     return NextResponse.json({ errors: result.error.flatten() }, { status: 400 })
   }
 
-  const { timeInput, teamTimeInput, ...rest } = result.data
+  const { timeInput, teamTimeInput, relayStroke, ...rest } = result.data
   const data: Record<string, unknown> = { ...rest }
 
   if (timeInput) data.timeMs = parseTimeInput(timeInput)!
   if (teamTimeInput !== undefined) {
     data.teamTimeMs = teamTimeInput ? parseTimeInput(teamTimeInput) : null
+  }
+  if (relayStroke !== undefined) {
+    data.relayStroke = relayStroke as Stroke | null
   }
 
   const event = await db.event.update({
