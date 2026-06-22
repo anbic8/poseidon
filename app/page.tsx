@@ -153,6 +153,17 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
+      {/* Header-Bild — nur auf Desktop mit genug Platz */}
+      <div className="hidden md:block -mx-4 -mt-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/poseidon-header.png"
+          alt="Poseidon"
+          className="w-full max-h-44 object-cover rounded-b-2xl"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+        />
+      </div>
+
       {/* Saison-Selector */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Dashboard</h1>

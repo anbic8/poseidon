@@ -124,22 +124,23 @@ export default function TrainingPage() {
             <div key={t.id}
               className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800
                 hover:border-gray-300 dark:hover:border-slate-600">
-              {/* Zeile */}
-              <div className="px-4 py-3 flex items-center gap-3">
-                <span className="w-20 shrink-0 text-xs text-gray-500 dark:text-slate-400">
-                  {formatDate(t.date)}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate block">
-                    {t.eventType.displayName}
-                  </span>
-                  <span className="text-xs text-gray-400 dark:text-slate-500">
-                    {POOL_LABELS[t.poolType]}{t.notes && <> · {t.notes}</>}
-                  </span>
-                </div>
-                <span className="font-mono text-base font-semibold text-blue-700 dark:text-blue-400 shrink-0">
+              {/* Karten-Header: Disziplin + Zeit */}
+              <div className="px-4 pt-3 pb-1 flex items-start justify-between gap-3">
+                <h3 className="font-semibold text-gray-900 dark:text-slate-100 leading-tight">
+                  {t.eventType.displayName}
+                </h3>
+                <span className="font-mono text-xl font-bold text-blue-700 dark:text-blue-400 shrink-0 leading-tight">
                   {formatTime(t.timeMs)}
                 </span>
+              </div>
+              {/* Karten-Footer: Datum + Meta + Aktionen */}
+              <div className="px-4 pb-3 flex items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-x-2 text-xs text-gray-400 dark:text-slate-500">
+                  <span>{formatDate(t.date)}</span>
+                  <span>·</span>
+                  <span>{POOL_LABELS[t.poolType]}</span>
+                  {t.notes && <><span>·</span><span className="truncate max-w-[120px]">{t.notes}</span></>}
+                </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <MediaUpload
                     url={`/api/trainings/${t.id}/media`}
