@@ -46,19 +46,42 @@ function ConfirmDelete({ message, detail, onConfirm, onCancel }: {
   )
 }
 
-function EventRow({ event, onEdit, onDelete, onMediaDelete, onMediaUpload }: {
+// Bewertet eine Zeit relativ zur Bestzeit:
+// 'pb'      = aktuelle Alltime-Bestzeit (Wettkampf)
+// 'near-pb' = innerhalb 2% der Bestzeit
+function rateTime(timeMs: number, bestMs: number | null): 'pb' | 'near-pb' | null {
+  if (!bestMs) return null
+  if (timeMs === bestMs) return 'pb'
+  if (timeMs <= bestMs * 1.02) return 'near-pb'
+  return null
+}
+
+function TimeRating({ rating }: { rating: 'pb' | 'near-pb' | null }) {
+  if (!rating) return null
+  if (rating === 'pb') return (
+    <span title="Persönliche Bestzeit!" className="text-base leading-none">⭐</span>
+  )
+  return (
+    <span title="Nahe an der persönlichen Bestzeit (innerhalb 2%)" className="text-base leading-none">🟢</span>
+  )
+}
+
+function EventRow({ event, bestMs, onEdit, onDelete, onMediaDelete, onMediaUpload }: {
   event: CompetitionEventWithMedia
+  bestMs: number | null
   onEdit:         (e: CompetitionEventWithMedia) => void
   onDelete:       (id: string) => void
   onMediaDelete:  (mediaId: string) => void
   onMediaUpload:  (media: Media) => void
 }) {
+  const rating = rateTime(event.timeMs, bestMs)
+
   return (
     <>
-    <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 flex items-center gap-3">
+    <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <span className="font-medium text-gray-800 text-sm">{event.eventType.displayName}</span>
+          <span className="font-medium text-gray-800 dark:text-slate-200 text-sm">{event.eventType.displayName}</span>
           {event.heat && (
             <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{event.heat}</span>
           )}
@@ -76,9 +99,12 @@ function EventRow({ event, onEdit, onDelete, onMediaDelete, onMediaUpload }: {
           {event.notes && <span>· {event.notes}</span>}
         </div>
       </div>
-      <span className="font-mono text-lg font-semibold text-blue-700 shrink-0">
-        {formatTime(event.timeMs)}
-      </span>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="font-mono text-lg font-semibold text-blue-700 dark:text-blue-400">
+          {formatTime(event.timeMs)}
+        </span>
+        <TimeRating rating={rating} />
+      </div>
       <div className="flex gap-1 shrink-0">
         <MediaUpload
           url={`/api/events/${event.id}/media`}
@@ -131,12 +157,26 @@ export default function CompetitionDetailPage() {
   const [addEvent,       setAddEvent]       = useState(false)
   const [editEvent,      setEditEvent]      = useState<CompetitionEventWithMedia | null>(null)
   const [deleteEventId,  setDeleteEventId]  = useState<string | null>(null)
+  // bestMap: eventTypeId → compMs (aktuelle Alltime-Wettkampf-Bestzeit, nach Laden der Bestzeiten)
+  const [bestMap, setBestMap] = useState<Record<string, number>>({})
   const [deleteComp,     setDeleteComp]     = useState(false)
 
   const load = useCallback(() => {
-    fetch(`/api/competitions/${id}`)
-      .then((r) => r.json())
-      .then((data) => { setCompetition(data); setLoading(false) })
+    Promise.all([
+      fetch(`/api/competitions/${id}`).then((r) => r.json()),
+      fetch('/api/stats/bests').then((r) => r.json()),
+    ]).then(([compData, bests]) => {
+      setCompetition(compData)
+      // bestMap aufbauen: eventTypeId → compMs für den jeweiligen Bahntyp
+      const map: Record<string, number> = {}
+      for (const b of bests) {
+        const poolType = compData.poolType as string
+        const ms = poolType === 'KURZBAHN' ? b.kb?.compMs : b.lb?.compMs
+        if (ms) map[b.eventTypeId] = ms
+      }
+      setBestMap(map)
+      setLoading(false)
+    })
   }, [id])
 
   useEffect(() => { load() }, [load])
@@ -274,6 +314,7 @@ export default function CompetitionDetailPage() {
             {individualEvents.map((ev) => (
               <EventRow key={ev.id} event={ev}
                 onEdit={setEditEvent} onDelete={setDeleteEventId}
+                bestMs={bestMap[ev.eventTypeId] ?? null}
                 onMediaDelete={handleDeleteMedia} onMediaUpload={() => load()} />
             ))}
           </div>
@@ -290,6 +331,7 @@ export default function CompetitionDetailPage() {
             {relayEvents.map((ev) => (
               <EventRow key={ev.id} event={ev}
                 onEdit={setEditEvent} onDelete={setDeleteEventId}
+                bestMs={bestMap[ev.eventTypeId] ?? null}
                 onMediaDelete={handleDeleteMedia} onMediaUpload={() => load()} />
             ))}
           </div>

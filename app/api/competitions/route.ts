@@ -12,8 +12,18 @@ const createSchema = z.object({
   notes:    z.string().optional(),
 })
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = req.nextUrl
+  const year = searchParams.get('year')
+
+  const where: Record<string, unknown> = {}
+  if (year) {
+    const y = parseInt(year, 10)
+    where.date = { gte: new Date(`${y}-01-01`), lt: new Date(`${y + 1}-01-01`) }
+  }
+
   const competitions = await db.competition.findMany({
+    where,
     include:  { _count: { select: { events: true } } },
     orderBy:  { date: 'desc' },
   })

@@ -50,10 +50,10 @@ const currentYear = new Date().getFullYear()
 // ── Helfer ────────────────────────────────────────────────────────────────────
 
 function TimeCell({ ms, date, na }: { ms: number | null; date?: string | null; na?: boolean }) {
-  if (na) return <span className="text-gray-200">—</span>
-  if (!ms) return <span className="text-gray-300">—</span>
+  if (na) return <span className="text-gray-200 dark:text-slate-700">—</span>
+  if (!ms) return <span className="text-gray-300 dark:text-slate-600">—</span>
   return (
-    <span title={date ? formatDate(date) : undefined}>
+    <span title={date ? `vom ${formatDate(date)}` : undefined} className="cursor-help">
       {formatTime(ms)}
     </span>
   )
@@ -190,13 +190,57 @@ export default function DashboardPage() {
         <p className="text-center text-gray-400 dark:text-slate-500 text-sm py-8">Lade Daten…</p>
       )}
 
-      {/* Bestzeiten-Tabelle */}
+      {/* Bestzeiten */}
       {!loading && bests.length > 0 && (
         <section>
           <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-200 mb-3">
             Bestzeiten {year}
           </h2>
-          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700">
+
+          {/* ── Mobile: Karten-Layout ─────────────────────────────────────────── */}
+          <div className="sm:hidden space-y-4">
+            {[...groupedByStroke, ...(relayBests.length > 0 ? [{ stroke: 'RELAY', label: 'Staffeln', events: relayBests }] : [])].map(({ label, events }) => (
+              <div key={label}>
+                <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide mb-1.5 px-1">
+                  {label}
+                </p>
+                <div className="space-y-1">
+                  {events.map((b) => (
+                    <div key={b.eventTypeId}
+                      className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+                      <span className="flex-1 text-sm text-gray-700 dark:text-slate-300 truncate min-w-0">{b.displayName}</span>
+                      {/* KB */}
+                      <div className="text-center shrink-0 min-w-[60px]">
+                        <p className="text-[10px] text-gray-400 dark:text-slate-500 leading-none mb-0.5">KB</p>
+                        <p className="font-mono font-semibold text-sm text-blue-700 dark:text-blue-400">
+                          {b.validKB && b.kb.compMs ? formatTime(b.kb.compMs) : <span className="text-gray-300 dark:text-slate-600">—</span>}
+                        </p>
+                        {b.validKB && b.kb.trainMs && (
+                          <p className="font-mono text-[10px] text-gray-400 dark:text-slate-500">{formatTime(b.kb.trainMs)}</p>
+                        )}
+                      </div>
+                      {/* LB */}
+                      <div className="text-center shrink-0 min-w-[60px]">
+                        <p className="text-[10px] text-gray-400 dark:text-slate-500 leading-none mb-0.5">LB</p>
+                        <p className="font-mono font-semibold text-sm text-blue-700 dark:text-blue-400">
+                          {b.validLB && b.lb.compMs ? formatTime(b.lb.compMs) : <span className="text-gray-300 dark:text-slate-600">—</span>}
+                        </p>
+                        {b.validLB && b.lb.trainMs && (
+                          <p className="font-mono text-[10px] text-gray-400 dark:text-slate-500">{formatTime(b.lb.trainMs)}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <p className="text-xs text-gray-400 dark:text-slate-500 px-1">
+              WK-Zeit fett · Training klein darunter · — = keine Daten
+            </p>
+          </div>
+
+          {/* ── Desktop: Vollständige Tabelle ─────────────────────────────────── */}
+          <div className="hidden sm:block overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
@@ -216,26 +260,15 @@ export default function DashboardPage() {
                 {groupedByStroke.map(({ stroke, label, events }) => (
                   <>
                     <tr key={`header-${stroke}`} className="bg-blue-50 dark:bg-blue-950/40">
-                      <td colSpan={5} className="px-4 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
-                        {label}
-                      </td>
+                      <td colSpan={5} className="px-4 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">{label}</td>
                     </tr>
                     {events.map((b) => (
-                      <tr key={b.eventTypeId}
-                        className="border-t border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50">
+                      <tr key={b.eventTypeId} className="border-t border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50">
                         <td className="px-4 py-2.5 text-gray-700 dark:text-slate-300">{b.displayName}</td>
-                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400">
-                          <TimeCell ms={b.kb.compMs} date={b.kb.compDate} na={!b.validKB} />
-                        </td>
-                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs">
-                          <TimeCell ms={b.kb.trainMs} date={b.kb.trainDate} na={!b.validKB} />
-                        </td>
-                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400 border-l border-gray-100 dark:border-slate-700">
-                          <TimeCell ms={b.lb.compMs} date={b.lb.compDate} na={!b.validLB} />
-                        </td>
-                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs">
-                          <TimeCell ms={b.lb.trainMs} date={b.lb.trainDate} na={!b.validLB} />
-                        </td>
+                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400"><TimeCell ms={b.kb.compMs} date={b.kb.compDate} na={!b.validKB} /></td>
+                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs"><TimeCell ms={b.kb.trainMs} date={b.kb.trainDate} na={!b.validKB} /></td>
+                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400 border-l border-gray-100 dark:border-slate-700"><TimeCell ms={b.lb.compMs} date={b.lb.compDate} na={!b.validLB} /></td>
+                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs"><TimeCell ms={b.lb.trainMs} date={b.lb.trainDate} na={!b.validLB} /></td>
                       </tr>
                     ))}
                   </>
@@ -243,26 +276,15 @@ export default function DashboardPage() {
                 {relayBests.length > 0 && (
                   <>
                     <tr className="bg-blue-50 dark:bg-blue-950/40">
-                      <td colSpan={5} className="px-4 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
-                        Staffeln
-                      </td>
+                      <td colSpan={5} className="px-4 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Staffeln</td>
                     </tr>
                     {relayBests.map((b) => (
-                      <tr key={b.eventTypeId}
-                        className="border-t border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50">
+                      <tr key={b.eventTypeId} className="border-t border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50">
                         <td className="px-4 py-2.5 text-gray-700 dark:text-slate-300">{b.displayName}</td>
-                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400">
-                          <TimeCell ms={b.kb.compMs} date={b.kb.compDate} na={!b.validKB} />
-                        </td>
-                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs">
-                          <TimeCell ms={b.kb.trainMs} date={b.kb.trainDate} na={!b.validKB} />
-                        </td>
-                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400 border-l border-gray-100 dark:border-slate-700">
-                          <TimeCell ms={b.lb.compMs} date={b.lb.compDate} na={!b.validLB} />
-                        </td>
-                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs">
-                          <TimeCell ms={b.lb.trainMs} date={b.lb.trainDate} na={!b.validLB} />
-                        </td>
+                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400"><TimeCell ms={b.kb.compMs} date={b.kb.compDate} na={!b.validKB} /></td>
+                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs"><TimeCell ms={b.kb.trainMs} date={b.kb.trainDate} na={!b.validKB} /></td>
+                        <td className="px-3 py-2.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-400 border-l border-gray-100 dark:border-slate-700"><TimeCell ms={b.lb.compMs} date={b.lb.compDate} na={!b.validLB} /></td>
+                        <td className="px-3 py-2.5 text-center font-mono text-gray-500 dark:text-slate-500 text-xs"><TimeCell ms={b.lb.trainMs} date={b.lb.trainDate} na={!b.validLB} /></td>
                       </tr>
                     ))}
                   </>
@@ -270,7 +292,7 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5">
+          <p className="hidden sm:block text-xs text-gray-400 dark:text-slate-500 mt-1.5">
             Wettkampfzeit = fett blau · Trainingszeit = grau · — = keine Daten · Hover zeigt Datum
           </p>
         </section>

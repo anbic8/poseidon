@@ -7,6 +7,13 @@ import { POOL_LABELS } from '@/lib/constants'
 import type { Competition } from '@/lib/types'
 import { CompetitionForm, type CompetitionFormData } from './_components/competition-form'
 
+const currentYear = new Date().getFullYear()
+
+const SELECT = `rounded-md border border-gray-300 dark:border-slate-600
+  bg-white dark:bg-slate-800 px-3 py-1.5 text-sm
+  text-gray-800 dark:text-slate-200
+  focus:outline-none focus:ring-2 focus:ring-blue-500`
+
 export default function CompetitionsPage() {
   const router = useRouter()
   const [competitions, setCompetitions] = useState<Competition[]>([])
@@ -14,11 +21,24 @@ export default function CompetitionsPage() {
   const [showAdd,      setShowAdd]      = useState(false)
   const [editComp,     setEditComp]     = useState<Competition | null>(null)
   const [deleteId,     setDeleteId]     = useState<string | null>(null)
+  const [filterYear,   setFilterYear]   = useState<number | 0>(currentYear)
+  const [years,        setYears]        = useState<number[]>([currentYear])
+
+  useEffect(() => {
+    fetch('/api/stats/years').then((r) => r.json()).then((data: number[]) => {
+      if (data.length > 0) setYears(data)
+    })
+  }, [])
 
   const load = useCallback(() => {
     setLoading(true)
-    fetch('/api/competitions').then((r) => r.json()).then(setCompetitions).finally(() => setLoading(false))
-  }, [])
+    const params = new URLSearchParams()
+    if (filterYear) params.set('year', String(filterYear))
+    fetch(`/api/competitions?${params}`)
+      .then((r) => r.json())
+      .then(setCompetitions)
+      .finally(() => setLoading(false))
+  }, [filterYear])
 
   useEffect(() => { load() }, [load])
 
@@ -49,6 +69,7 @@ export default function CompetitionsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Wettkämpfe</h1>
         <button onClick={() => { setShowAdd(true); setEditComp(null) }}
@@ -57,17 +78,28 @@ export default function CompetitionsPage() {
         </button>
       </div>
 
+      {/* Add-Formular */}
       {showAdd && (
         <div className="mb-6 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 p-4">
           <CompetitionForm onSave={handleCreate} onCancel={() => setShowAdd(false)} />
         </div>
       )}
 
-      {loading && <p className="text-gray-500 dark:text-slate-400 text-sm">Lädt…</p>}
+      {/* Filter */}
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <select value={filterYear} onChange={(e) => setFilterYear(Number(e.target.value))} className={SELECT}>
+          <option value={0}>Alle Jahre</option>
+          {years.map((y) => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <span className="text-sm text-gray-500 dark:text-slate-400 ml-auto">
+          {loading ? 'Lädt…' : `${competitions.length} Wettkämpfe`}
+        </span>
+      </div>
 
+      {/* Liste */}
       {!loading && competitions.length === 0 && (
         <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-700 py-16 text-center text-gray-500 dark:text-slate-500">
-          Noch keine Wettkämpfe eingetragen.
+          {filterYear ? `Keine Wettkämpfe in ${filterYear}.` : 'Noch keine Wettkämpfe eingetragen.'}
         </div>
       )}
 
@@ -112,15 +144,14 @@ export default function CompetitionsPage() {
         ))}
       </div>
 
+      {/* Löschen-Bestätigung */}
       {deleteId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
           onClick={() => setDeleteId(null)}>
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 w-full max-w-sm"
             onClick={(e) => e.stopPropagation()}>
             <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-2">Wettkampf löschen?</h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
-              Alle Läufe und Medien werden ebenfalls gelöscht.
-            </p>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">Alle Läufe und Medien werden ebenfalls gelöscht.</p>
             <div className="flex gap-2">
               <button onClick={() => handleDelete(deleteId)}
                 className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">Löschen</button>
